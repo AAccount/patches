@@ -1,0 +1,50 @@
+From 9d92a072e23a55b1409c07fccb983acaa3a78b81 Mon Sep 17 00:00:00 2001
+From: Daniel Tjandra <danieltjandra@gmail.com>
+Date: Thu, 5 Feb 2015 14:41:02 -0500
+Subject: [PATCH] Cyano-port volume button long press control
+
+Change-Id: I2e9967d16a758853e3fd1961f03f6d2a79d3d322
+
+packages/apps/OmniGears
+---
+ res/values/custom_strings.xml | 4 ++++
+ res/xml/button_settings.xml   | 4 ++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/res/values/custom_strings.xml b/res/values/custom_strings.xml
+index 1223f69..785b969 100644
+--- a/res/values/custom_strings.xml
++++ b/res/values/custom_strings.xml
+@@ -66,4 +66,8 @@
+     <!-- Swap volume buttons when the screen is rotated -->
+     <string name="swap_volume_buttons_title">Match rotation</string>
+     <string name="swap_volume_buttons_summary">Adjust volume buttons action based on current rotation</string>
++
++	<!-- Volume long press control -->
++	<string name="button_volume_music_control_title">Playback control</string>
++	<string name="button_volume_music_control_summary">When the screen is off, long pressing the volume keys will seek music tracks</string>
+ </resources>
+diff --git a/res/xml/button_settings.xml b/res/xml/button_settings.xml
+index ac77426..0ce0cc7 100644
+--- a/res/xml/button_settings.xml
++++ b/res/xml/button_settings.xml
+@@ -47,14 +47,14 @@
+             android:summary="@string/button_volume_default_summary"
+             android:entries="@array/button_volume_default_entries"
+             android:entryValues="@array/button_volume_default_values"
+-            android:persistent="false"/>
++            android:persistent="false"/> -->
+ 
+         <CheckBoxPreference
+             android:key="button_volume_music_control"
+             android:title="@string/button_volume_music_control_title"
+             android:summary="@string/button_volume_music_control_summary"
+             android:persistent="false"/>
+-
++		<!--
+         <ListPreference
+             android:key="volume_key_cursor_control"
+             android:persistent="false"
+-- 
+2.1.0
+

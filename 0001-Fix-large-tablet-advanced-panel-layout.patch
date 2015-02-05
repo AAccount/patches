@@ -1,0 +1,56 @@
+From 97b524c47e883247e280d3c15e91bd8f4f835a9c Mon Sep 17 00:00:00 2001
+From: Daniel Tjandra <danieltjandra@gmail.com>
+Date: Thu, 5 Feb 2015 14:37:28 -0500
+Subject: [PATCH] Fix large tablet advanced panel layout
+
+Change-Id: I6585b4160e4b86a3274e3fb225a287977d3bbc98
+
+packages/apps/Calculator
+---
+ res/values-sw800dp-land-v17/styles.xml | 2 +-
+ res/values-sw800dp-land/styles.xml     | 2 +-
+ res/values-sw800dp-port/styles.xml     | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/res/values-sw800dp-land-v17/styles.xml b/res/values-sw800dp-land-v17/styles.xml
+index 5e41573..5407e7d 100644
+--- a/res/values-sw800dp-land-v17/styles.xml
++++ b/res/values-sw800dp-land-v17/styles.xml
+@@ -25,7 +25,7 @@
+         <item name="android:paddingBottom">10dip</item>
+         <item name="android:paddingStart">18dip</item>
+         <item name="android:paddingEnd">22dip</item>
+-        <item name="android:columnCount">3</item>
++        <item name="android:columnCount">4</item>
+         <item name="android:rowCount">4</item>
+     </style>
+ 
+diff --git a/res/values-sw800dp-land/styles.xml b/res/values-sw800dp-land/styles.xml
+index 588ea23..a34553a 100644
+--- a/res/values-sw800dp-land/styles.xml
++++ b/res/values-sw800dp-land/styles.xml
+@@ -69,7 +69,7 @@
+         <item name="android:paddingBottom">10dip</item>
+         <item name="android:paddingLeft">18dip</item>
+         <item name="android:paddingRight">22dip</item>
+-        <item name="android:columnCount">3</item>
++        <item name="android:columnCount">4</item>
+         <item name="android:rowCount">4</item>
+     </style>
+ 
+diff --git a/res/values-sw800dp-port/styles.xml b/res/values-sw800dp-port/styles.xml
+index 0993693..b2c3b1d 100644
+--- a/res/values-sw800dp-port/styles.xml
++++ b/res/values-sw800dp-port/styles.xml
+@@ -76,7 +76,7 @@
+         <item name="android:paddingLeft">16dip</item>
+         <item name="android:paddingRight">16dip</item>
+         <item name="android:columnCount">6</item>
+-        <item name="android:rowCount">2</item>
++        <item name="android:rowCount">3</item>
+     </style>
+ 
+     <style name="PadLayoutStyle.Numeric">
+-- 
+2.1.0
+

@@ -1,0 +1,96 @@
+packages/apps/Browser
+From 102d4bc5a6ee4fab03defb09db60a4af158d74d1 Mon Sep 17 00:00:00 2001
+From: Daniel Tjandra <danieltjandra@gmail.com>
+Date: Thu, 19 Mar 2015 12:42:12 -0400
+Subject: [PATCH] remove annoying useless default bookmarks
+
+Change-Id: I735908ecfa4926a3db5343ce8ea87df9385139c3
+---
+ res/values/bookmarks_icons.xml | 22 ----------------------
+ res/values/strings.xml         | 34 ++++++----------------------------
+ 2 files changed, 6 insertions(+), 50 deletions(-)
+
+diff --git a/res/values/bookmarks_icons.xml b/res/values/bookmarks_icons.xml
+index 5d8e85a..79ad34e 100644
+--- a/res/values/bookmarks_icons.xml
++++ b/res/values/bookmarks_icons.xml
+@@ -3,31 +3,9 @@
+     <array name="bookmark_preloads">
+         <item>@raw/favicon_google</item>
+         <item>@raw/thumb_google</item>
+-        <item>@raw/favicon_picasa</item>
+-        <item>@raw/thumb_picasa</item>
+-        <item>@raw/favicon_yahoo</item>
+-        <item>@raw/thumb_yahoo</item>
+-        <item>@raw/favicon_msn</item>
+-        <item>@raw/thumb_msn</item>
+-        <item>@raw/favicon_twitter</item>
+-        <item>@raw/thumb_twitter</item>
+         <item>@raw/favicon_facebook</item>
+         <item>@raw/thumb_facebook</item>
+         <item>@raw/favicon_wikipedia</item>
+         <item>@raw/thumb_wikipedia</item>
+-        <item>@raw/favicon_ebay</item>
+-        <item>@raw/thumb_ebay</item>
+-        <item>@raw/favicon_cnn</item>
+-        <item>@raw/thumb_cnn</item>
+-        <item>@raw/favicon_nytimes</item>
+-        <item>@raw/thumb_nytimes</item>
+-        <item>@raw/favicon_espn</item>
+-        <item>@raw/thumb_espn</item>
+-        <item>@raw/favicon_amazon</item>
+-        <item>@raw/thumb_amazon</item>
+-        <item>@raw/favicon_weatherchannel</item>
+-        <item>@raw/thumb_weatherchannel</item>
+-        <item>@raw/favicon_bbc</item>
+-        <item>@raw/thumb_bbc</item>
+     </array>
+ </resources>
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index bba4dbe..4b9fd13 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -799,34 +799,12 @@
+ 
+     <!-- Bookmarks -->
+     <string-array name="bookmarks" translatable="false">
+-        <item>Google</item>
+-        <item>http://www.google.com/</item>
+-        <item>Picasa</item>
+-        <item>http://picasaweb.google.com/</item>
+-        <item>Yahoo!</item>
+-        <item>http://www.yahoo.com/</item>
+-        <item>MSN</item>
+-        <item>http://www.msn.com/</item>
+-        <item>Twitter</item>
+-        <item>http://twitter.com/</item>
+-        <item>Facebook</item>
+-        <item>http://www.facebook.com/</item>
+-        <item>Wikipedia</item>
+-        <item>http://www.wikipedia.org/</item>
+-        <item>eBay</item>
+-        <item>http://www.ebay.com/</item>
+-        <item>CNN</item>
+-        <item>http://www.cnn.com/</item>
+-        <item>NY Times</item>
+-        <item>http://www.nytimes.com/</item>
+-        <item>ESPN</item>
+-        <item>http://espn.com/</item>
+-        <item>Amazon</item>
+-        <item>http://www.amazon.com/</item>
+-        <item>Weather Channel</item>
+-        <item>http://www.weather.com/</item>
+-        <item>BBC</item>
+-        <item>http://www.bbc.co.uk/</item>
++        <item>Google*</item>
++        <item>https://www.google.com/</item>
++        <item>Facebook*</item>
++        <item>https://www.facebook.com/</item>
++        <item>Wikipedia*</item>
++        <item>https://www.wikipedia.org/</item>
+     </string-array>
+ 
+     <!-- Bookmark name for Picasa website -->
+-- 
+2.1.0
+

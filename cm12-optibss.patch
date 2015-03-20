@@ -1,0 +1,209 @@
+frameworks/opt/net/wifi
+From 1ca3e40f91c04f0d2bf5bc83f9f75325bf8dd794 Mon Sep 17 00:00:00 2001
+From: Bruno Randolf <br1@einfach.org>
+Date: Tue, 13 Jan 2015 16:53:00 -0800
+Subject: [PATCH] Wifi: Add IBSS supported method
+
+  Add method isIbssSupported() to WifiManager and related classes to query wether
+  the driver supports IBSS mode. The query is answered by wpa_supplicants new
+  command "get_capability modes".
+
+Change-Id: Idbccdf9d3b60855a0067032a0073f5aa001be224
+---
+ .../com/android/server/wifi/WifiConfigStore.java   | 35 ++++++++++++++++++++++
+ .../java/com/android/server/wifi/WifiNative.java   | 12 ++++++++
+ .../com/android/server/wifi/WifiServiceImpl.java   | 15 ++++++++++
+ .../com/android/server/wifi/WifiStateMachine.java  | 22 ++++++++++++++
+ 4 files changed, 84 insertions(+)
+
+diff --git a/service/java/com/android/server/wifi/WifiConfigStore.java b/service/java/com/android/server/wifi/WifiConfigStore.java
+index 76255d4..18e95a5 100755
+--- a/service/java/com/android/server/wifi/WifiConfigStore.java
++++ b/service/java/com/android/server/wifi/WifiConfigStore.java
+@@ -2653,6 +2653,23 @@ private NetworkUpdateResult addOrUpdateNetworkNative(WifiConfiguration config, i
+                 }
+             }
+ 
++            if (config.isIBSS) {
++                if(!mWifiNative.setNetworkVariable(
++                        netId,
++                        WifiConfiguration.modeVarName,
++                        "1")) {
++                    loge("failed to set adhoc mode");
++                    break setVariables;
++                }
++                if(!mWifiNative.setNetworkVariable(
++                        netId,
++                        WifiConfiguration.frequencyVarName,
++                        Integer.toString(config.frequency))) {
++                    loge("failed to set frequency");
++                    break setVariables;
++                }
++            }
++
+             String allowedKeyManagementString =
+                 makeString(config.allowedKeyManagement, WifiConfiguration.KeyMgmt.strings);
+             if (config.allowedKeyManagement.cardinality() != 0 &&
+@@ -3492,6 +3509,24 @@ private void readNetworkVariables(WifiConfiguration config) {
+             }
+         }
+ 
++        value = mWifiNative.getNetworkVariable(netId, WifiConfiguration.modeVarName);
++        config.isIBSS = false;
++        if (!TextUtils.isEmpty(value)) {
++            try {
++                config.isIBSS = Integer.parseInt(value) != 0;
++            } catch (NumberFormatException ignore) {
++            }
++        }
++
++        value = mWifiNative.getNetworkVariable(netId, WifiConfiguration.frequencyVarName);
++        config.frequency = 0;
++        if (!TextUtils.isEmpty(value)) {
++            try {
++                config.frequency = Integer.parseInt(value);
++            } catch (NumberFormatException ignore) {
++            }
++        }
++
+         value = mWifiNative.getNetworkVariable(netId, WifiConfiguration.wepTxKeyIdxVarName);
+         config.wepTxKeyIndex = -1;
+         if (!TextUtils.isEmpty(value)) {
+diff --git a/service/java/com/android/server/wifi/WifiNative.java b/service/java/com/android/server/wifi/WifiNative.java
+index 7df166c..a724fd9 100644
+--- a/service/java/com/android/server/wifi/WifiNative.java
++++ b/service/java/com/android/server/wifi/WifiNative.java
+@@ -1123,6 +1123,18 @@ public void setMiracastMode(int mode) {
+         doBooleanCommand("DRIVER MIRACAST " + mode);
+     }
+ 
++    public boolean getModeCapability(String mode) {
++        String ret = doStringCommand("GET_CAPABILITY modes");
++        if (!TextUtils.isEmpty(ret)) {
++            String[] tokens = ret.split(" ");
++            for (String t : tokens) {
++                if (t.compareTo(mode) == 0)
++                    return true;
++            }
++        }
++        return false;
++    }
++
+     public boolean fetchAnqp(String bssid, String subtypes) {
+         return doBooleanCommand("ANQP_GET " + bssid + " " + subtypes);
+     }
+diff --git a/service/java/com/android/server/wifi/WifiServiceImpl.java b/service/java/com/android/server/wifi/WifiServiceImpl.java
+index 8de6c0f..52ddbcb 100644
+--- a/service/java/com/android/server/wifi/WifiServiceImpl.java
++++ b/service/java/com/android/server/wifi/WifiServiceImpl.java
+@@ -1092,6 +1092,21 @@ public boolean isDualBandSupported() {
+                 com.android.internal.R.bool.config_wifi_dual_band_support);
+     }
+ 
++     /**
++     * Is Ad-Hoc (IBSS) mode supported by the driver?
++     * Will only return correct results when we have reached WIFI_STATE_ENABLED
++     * @return {@code true} if IBSS mode is supported, {@code false} if not
++     */
++    public boolean isIbssSupported() {
++        enforceAccessPermission();
++        if (mWifiStateMachineChannel != null) {
++            return (mWifiStateMachine.syncIsIbssSupported(mWifiStateMachineChannel) == 1);
++        } else {
++            Slog.e(TAG, "mWifiStateMachineChannel is not initialized");
++            return false;
++        }
++    }
++
+     /**
+      * Return the DHCP-assigned addresses from the last successful DHCP request,
+      * if any.
+diff --git a/service/java/com/android/server/wifi/WifiStateMachine.java b/service/java/com/android/server/wifi/WifiStateMachine.java
+index d7ac7d7..2225632 100644
+--- a/service/java/com/android/server/wifi/WifiStateMachine.java
++++ b/service/java/com/android/server/wifi/WifiStateMachine.java
+@@ -172,6 +172,7 @@ protected void loge(String s) {
+     private ConnectivityManager mCm;
+ 
+     private final boolean mP2pSupported;
++    private boolean mIbssSupported;
+     private final AtomicBoolean mP2pConnected = new AtomicBoolean(false);
+     private boolean mTemporarilyDisconnectWifi = false;
+     private final String mPrimaryDeviceType;
+@@ -629,6 +630,9 @@ public boolean autoRoamSetBSSID(WifiConfiguration config, String bssid) {
+     /* Supplicant is trying to associate to a given SSID */
+     static final int CMD_TARGET_SSID                     = BASE + 148;
+ 
++    /* Is IBSS mode supported by the driver? */
++    static final int CMD_GET_IBSS_SUPPORTED        = BASE + 149;
++
+     /* Wifi state machine modes of operation */
+     /* CONNECT_MODE - connect to any 'known' AP when it becomes available */
+     public static final int CONNECT_MODE                   = 1;
+@@ -1239,6 +1243,7 @@ public boolean syncPingSupplicant(AsyncChannel channel) {
+                         c.freqMHz = Integer.parseInt(prop[3]);
+                     } catch (NumberFormatException e) { }
+                     c.isDFS = line.contains("(DFS)");
++                    c.ibssAllowed = !line.contains("(NO_IBSS)");
+                     list.add(c);
+                 } else if (line.contains("Mode[B] Channels:")) {
+                     // B channels are the same as G channels, skipped
+@@ -2285,6 +2290,13 @@ public void setCountryCode(String countryCode, boolean persist) {
+         }
+     }
+ 
++    public int syncIsIbssSupported(AsyncChannel channel) {
++        Message resultMsg = channel.sendMessageSynchronously(CMD_GET_IBSS_SUPPORTED);
++        int result = resultMsg.arg1;
++        resultMsg.recycle();
++        return result;
++    }
++
+     /**
+      * Set the operational frequency band
+      * @param band
+@@ -4638,6 +4650,7 @@ public boolean processMessage(Message message) {
+                 case CMD_ADD_OR_UPDATE_NETWORK:
+                 case CMD_REMOVE_NETWORK:
+                 case CMD_SAVE_CONFIG:
++                case CMD_GET_IBSS_SUPPORTED:
+                     replyToMessage(message, message.what, FAILURE);
+                     break;
+                 case CMD_GET_CAPABILITY_FREQ:
+@@ -4986,6 +4999,8 @@ public boolean processMessage(Message message) {
+                     }
+                     initializeWpsDetails();
+ 
++                    mIbssSupported = mWifiNative.getModeCapability("IBSS");
++
+                     sendSupplicantConnectionChangedBroadcast(true);
+                     transitionTo(mDriverStartedState);
+                     break;
+@@ -5014,6 +5029,7 @@ public boolean processMessage(Message message) {
+                 case CMD_SET_FREQUENCY_BAND:
+                 case CMD_START_PACKET_FILTERING:
+                 case CMD_STOP_PACKET_FILTERING:
++                case CMD_GET_IBSS_SUPPORTED:
+                     messageHandlingStatus = MESSAGE_HANDLING_STATUS_DEFERRED;
+                     deferMessage(message);
+                     break;
+@@ -5118,6 +5134,9 @@ public boolean processMessage(Message message) {
+                     }
+                     replyToMessage(message, message.what, stats);
+                     break;
++                case CMD_GET_IBSS_SUPPORTED:
++                    deferMessage(message);
++                    break;
+                 default:
+                     return NOT_HANDLED;
+             }
+@@ -5519,6 +5538,9 @@ public boolean processMessage(Message message) {
+                         mWifiNative.startTdls(remoteAddress, enable);
+                     }
+                     break;
++                case CMD_GET_IBSS_SUPPORTED:
++                    replyToMessage(message, message.what, mIbssSupported ? 1 : 0);
++                    break;
+                 default:
+                     return NOT_HANDLED;
+             }
